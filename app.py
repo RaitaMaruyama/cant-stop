@@ -135,3 +135,11 @@ if st.button("確率を計算", type="primary", disabled=len(targets) == 0):
 
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
+        st.caption(
+            "⚠️ 各行の場合の数を合計しても、全体の場合の数とは一致しません。"
+            "1回の出目が複数の行に同時にカウントされることがあるためです。\n\n"
+            "例：出目 [1, 6, 2, 5]（6,7,8 を選択中）のとき、"
+            "ペアの組み方は (7,7) / (3,11) / (6,8) の3通りになります。"
+            "このとき「7+7」と「6+8」の両方にカウントされます。"
+        )
+
