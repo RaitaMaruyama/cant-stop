@@ -1,10 +1,6 @@
 import streamlit as st
 from itertools import combinations
 from math import gcd, log, ceil
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from matplotlib.patches import Circle
 import pandas as pd
 
 
@@ -76,67 +72,6 @@ def calculate_dice_probability(targets):
     return probability, favorable_outcomes, total_outcomes, favorable_outcomes // g, total_outcomes // g
 
 
-def draw_venn(targets, pair_probs, single_probs):
-    colors = ['#5B8DBE', '#E07B39', '#3DAA6A']
-    alpha = 0.32
-
-    def label(data):
-        p, fav, tot = data
-        return f"{p*100:.1f}%\n({fav}/{tot})"
-
-    fig, ax = plt.subplots(figsize=(8, 6))
-    ax.set_aspect('equal')
-    ax.axis('off')
-
-    if len(targets) == 2:
-        t1, t2 = targets
-        ax.set_xlim(-1.8, 1.8)
-        ax.set_ylim(-1.2, 1.2)
-
-        ax.add_patch(Circle((-0.45, 0), 0.75, alpha=alpha, fc=colors[0], ec=colors[0], lw=2))
-        ax.add_patch(Circle(( 0.45, 0), 0.75, alpha=alpha, fc=colors[1], ec=colors[1], lw=2))
-
-        ax.text(-0.45, 1.0, str(t1), ha='center', va='center', fontsize=20, fontweight='bold', color=colors[0])
-        ax.text( 0.45, 1.0, str(t2), ha='center', va='center', fontsize=20, fontweight='bold', color=colors[1])
-
-        ax.text(-0.9,  0.18, f"{t1}\n{label(single_probs[t1])}", ha='center', va='center', fontsize=12)
-        ax.text(-0.9, -0.25, f"{t1}+{t1}\n{label(pair_probs[(t1, t1)])}", ha='center', va='center', fontsize=10, color='#444444')
-        ax.text( 0.9,  0.18, f"{t2}\n{label(single_probs[t2])}", ha='center', va='center', fontsize=12)
-        ax.text( 0.9, -0.25, f"{t2}+{t2}\n{label(pair_probs[(t2, t2)])}", ha='center', va='center', fontsize=10, color='#444444')
-        ax.text(   0,     0, f"{t1} & {t2}\n{label(pair_probs[(t1, t2)])}", ha='center', va='center', fontsize=12)
-
-    elif len(targets) == 3:
-        t1, t2, t3 = targets
-        ax.set_xlim(-2.0, 2.0)
-        ax.set_ylim(-2.05, 1.8)
-
-        ax.add_patch(Circle((-0.5,  0.35), 0.75, alpha=alpha, fc=colors[0], ec=colors[0], lw=2))
-        ax.add_patch(Circle(( 0.5,  0.35), 0.75, alpha=alpha, fc=colors[1], ec=colors[1], lw=2))
-        ax.add_patch(Circle(( 0.0, -0.45), 0.75, alpha=alpha, fc=colors[2], ec=colors[2], lw=2))
-
-        ax.text(-0.8,  1.25, str(t1), ha='center', va='center', fontsize=20, fontweight='bold', color=colors[0])
-        ax.text( 0.8,  1.25, str(t2), ha='center', va='center', fontsize=20, fontweight='bold', color=colors[1])
-        ax.text( 0.0, -1.62, str(t3), ha='center', va='center', fontsize=20, fontweight='bold', color=colors[2])
-
-        # Single-only + same-number doubles per exclusive region
-        ax.text(-1.1,  0.58, f"{t1}\n{label(single_probs[t1])}", ha='center', va='center', fontsize=11)
-        ax.text(-1.1,  0.20, f"{t1}+{t1}\n{label(pair_probs[(t1, t1)])}", ha='center', va='center', fontsize=10, color='#444444')
-        ax.text( 1.1,  0.58, f"{t2}\n{label(single_probs[t2])}", ha='center', va='center', fontsize=11)
-        ax.text( 1.1,  0.20, f"{t2}+{t2}\n{label(pair_probs[(t2, t2)])}", ha='center', va='center', fontsize=10, color='#444444')
-        ax.text( 0.0, -0.70, f"{t3}\n{label(single_probs[t3])}", ha='center', va='center', fontsize=11)
-        ax.text( 0.0, -1.20, f"{t3}+{t3}\n{label(pair_probs[(t3, t3)])}", ha='center', va='center', fontsize=10, color='#444444')
-
-        # Pair intersection regions
-        ax.text( 0.0,  0.70, f"{t1}&{t2}\n{label(pair_probs[(t1, t2)])}", ha='center', va='center', fontsize=11)
-        ax.text(-0.52, -0.18, f"{t1}&{t3}\n{label(pair_probs[(t1, t3)])}", ha='center', va='center', fontsize=11)
-        ax.text( 0.52, -0.18, f"{t2}&{t3}\n{label(pair_probs[(t2, t3)])}", ha='center', va='center', fontsize=11)
-
-        # Center (all 3 simultaneously is impossible with one pairing)
-        ax.text(0, 0.12, "0%", ha='center', va='center', fontsize=10, color='gray')
-
-    plt.tight_layout()
-    return fig
-
 
 st.title("🎲 Can't Stop - サイコロ確率計算")
 st.markdown("4つのサイコロを振ったとき、いずれかの2つの組み合わせが指定した数になる確率を計算します。")
@@ -199,11 +134,4 @@ if st.button("確率を計算", type="primary", disabled=len(targets) == 0):
                 rows.append({"状況": f"{t1} + {t2}", "確率": f"{p*100:.2f}%", "分数": f"{fav}/{tot}"})
 
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-
-        st.markdown("---")
-        with st.expander("ベン図を表示"):
-            st.caption("各領域：その数字のみ or 2つ同時に出せる確率。中心の0%は4つのサイコロ1組の振りで3つ同時は不可能なため。")
-            fig = draw_venn(targets, pair_probs, single_probs)
-            st.pyplot(fig)
-            plt.close(fig)
 
