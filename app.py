@@ -178,7 +178,7 @@ if st.button("確率を計算", type="primary", disabled=len(targets) == 0):
     with col_a:
         st.metric("確率（%）", f"{prob * 100:.2f}%")
     with col_b:
-        st.metric("分数", f"{favorable}/{total}")
+        st.metric("場合の数", f"{favorable}/{total}")
     with col_c:
         st.metric("連続成功が50%を切る試行回数", f"{trials_until_below_50}回")
 
